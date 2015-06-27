@@ -7,8 +7,19 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Random;
 /** 
- * Class create for clarity and in order to be able to send, in case of implementation in the future
- * all the data that the tiles contains at once, by means of serializing the object
+ * Class representing a Tile (client) in an independant thread. It uses the socket 
+ * connection to each of the different Socket Ports available. The amount of Tiles
+ * created depends on the parameter specified in StartClients.java and must always
+ * be equal or smaller to the number of ServerInstances.
+ * The explanation for this is that, since the TCP connection is identified by port
+ * and ip, the clients share the same one, and some of the packets are dropped 
+ * therefore, each client connects into a different server port creating a different
+ * socket.  
+ * Inputs: 
+ * 	Constructor Input: id, divided by bytes, port for udp control messages(extra 
+ * 	implementation and server port
+ * Outputs: Traffic towards the server. ID and temperature.
+ * 
  */
 public class Tile extends Thread {
 	
@@ -21,19 +32,22 @@ public class Tile extends Thread {
 	Datagram data;
 	byte initial_temperature1=20;
 	byte initial_temperature2=5;
+	int server_port;
+	String host;
 	
-	public Tile(long sub_id1, long sub_id2, int udp_port){
+	public Tile(long sub_id1, long sub_id2, int udp_port, int server_port, String host){
 		data= new Datagram(sub_id1, sub_id2, initial_temperature1, initial_temperature2);
 		this.udp_port=udp_port;
+		this.server_port=server_port;
+		this.host=host;
 	}
 	
 	public void run() {
 	 	try {
-	 		int serverPort = 30006;
-	 		String host = "54.171.190.69";
-	 		System.out.println("Client "+data.sub_id1+" "+data.sub_id2+" connecting to server "+host+ " on port " + serverPort); 
+	 		
+	 		System.out.println("Client "+data.sub_id1+" "+data.sub_id2+" connecting to server "+host+ " on port " + server_port); 
 
-	 		Socket socket = new Socket(host,serverPort); 
+	 		Socket socket = new Socket(host,server_port); 
 	 		//If we want it to run locally we change the address in socket to localhost.
 	 		//Socket socket = new Socket("localhost", serverPort);
 	 		
@@ -42,53 +56,45 @@ public class Tile extends Thread {
 	 		BufferedReader fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	 		
 	 		while(control!=1){
-	 		data.change_Temperature();
-	 		System.out.println("Client "+data.sub_id1+" "+data.sub_id2+" with temperature: "+data.temperature[0]+","+data.temperature[1]+" sending...");
-	 		toServer.print(data.sub_id1);
-	 		toServer.print(data.sub_id2);
-	 		toServer.println(data.temperature);
-	 		
-	 		String line = fromServer.readLine();
-
-	 		if(line!="ok"){
-	 		System.out.println("Client "+data.sub_id1+" "+data.sub_id2+" received: " + line + " from Server");
-		 		
-	 		}
-	 		else{
-	 			System.out.println("Client "+data.sub_id1+" "+data.sub_id2+" received: " + line + " from Server");
-			 }
-	 		
-	 		try {
-	 		//System.out.println("Sleeping...");
-	 		Random rGen = new Random();
-			int change=rGen.nextInt(10000);
-			Tile.sleep(change);
-			//System.out.println("Awake...");
-			} catch (InterruptedException e) {
-			System.out.println("Error...");
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-	 		
+	 			data.change_Temperature();
+	 			System.out.println("Client "+data.sub_id1+" "+data.sub_id2+" with temperature: "+data.temperature[0]+","+data.temperature[1]+" sending...");
+	 			toServer.print(data.sub_id1);
+	 			toServer.print(data.sub_id2);
+	 			toServer.print(data.temperature[0]);
+	 			toServer.println(data.temperature[1]);
+	 			String line = fromServer.readLine();
+	 			
+	 			//Redundant code, used for processing responses in the future
+	 			if(line!="ok"){
+	 				System.out.println("Client "+data.sub_id1+" "+data.sub_id2+" received: " + line + " from Server");
+	 			}
+	 			
+	 			else{
+	 				System.out.println("Client "+data.sub_id1+" "+data.sub_id2+" received: " + line + " from Server");
+	 			}
+	 			try {
+	 				//System.out.println("Sleeping...");
+	 				Random rGen = new Random();
+	 				int change=rGen.nextInt(100000);
+	 				Tile.sleep(change);
+	 				//System.out.println("Awake...");
+	 			} catch (InterruptedException e) {
+	 				System.out.println("Error...");
+	 				
+	 				e.printStackTrace();
+	 			}
 	 		}
 	 		
 	 		toServer.close();
 	 		fromServer.close();
 	 		socket.close();
 	 		}
-	 	
-	 	
+
 	 	catch(UnknownHostException ex) {
 	 		ex.printStackTrace();
 	 	}
 	 	catch(IOException e){
 	 		e.printStackTrace();
 	 	}
-	   }
-	
-	   	
-	
-	
-	
+	}
 }

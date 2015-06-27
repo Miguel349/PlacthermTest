@@ -3,33 +3,16 @@ import java.net.*;
 import java.io.*;
 
 public class ServerP { 
-  public void run() {
-	try {
-		int serverPort = 30006;
-		ServerSocket serverSocket = new ServerSocket(serverPort);
-		System.out.println("Waiting for client on port " + serverSocket.getLocalPort() + "..."); 
-		Socket server = serverSocket.accept();
-		PrintWriter toClient = new PrintWriter(server.getOutputStream(),true);
-		BufferedReader fromClient =new BufferedReader(new InputStreamReader(server.getInputStream()));
-		
-		//serverSocket.setSoTimeout(10000); 
-		while(true) {
-		System.out.println("Just connected to " + server.getRemoteSocketAddress()); 
-		String line = fromClient.readLine();
-		System.out.println("Server received: " + line); 
-		toClient.println("ok"); 
-		}
-	}
-	catch(UnknownHostException ex) {
-		ex.printStackTrace();
-	}
-	catch(IOException e){
-		e.printStackTrace();
-	}
-  }
+	public static int num_servers=1;
+	public static int server_port=30018;
 	
-  public static void main(String[] args) {
-		ServerP srv = new ServerP();
-		srv.run();
-  }
+	public static void main(String[] args) {
+			ServerInstance j[]=new ServerInstance[num_servers];
+			for(int i=0; i<num_servers; i++){
+				j[i]=new ServerInstance(server_port);
+				new Thread(j[i]).start();
+				server_port=server_port+5;
+			}
+	}		 
 }
+
