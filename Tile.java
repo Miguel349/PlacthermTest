@@ -19,7 +19,7 @@ import java.util.Random;
  * 	Constructor Input: id, divided by bytes, port for udp control messages(extra 
  * 	implementation and server port
  * Outputs: Traffic towards the server. ID and temperature.
- * 
+ * @author Miguel Pagán Murphy
  */
 public class Tile extends Thread {
 	

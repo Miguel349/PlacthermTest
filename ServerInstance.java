@@ -5,7 +5,13 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-
+/** 
+ * Class Representing a Server Instance Socket (a socket waiting at a certain port). Receives the clients data
+ and instantiates a DB object to insert the data into the MongoDB database.
+ * Inputs: Port
+ * Outputs: 
+ * @author: Miguel Pagán Murphy
+ */
 public class ServerInstance extends Thread {
 	
 	int server_port;
@@ -18,8 +24,7 @@ public class ServerInstance extends Thread {
 	public void run(){
 		ServerSocket serverSocket;
 		try {
-			serverSocket= new ServerSocket(server_port);
-	 		
+			serverSocket= new ServerSocket(server_port);	
 	 		System.out.println("Waiting for client on port " + serverSocket.getLocalPort() + "..."); 
 	 		Socket server = serverSocket.accept();
 	 		PrintWriter toClient = new PrintWriter(server.getOutputStream(),true);
@@ -45,16 +50,13 @@ public class ServerInstance extends Thread {
 	 			String temp=line.substring(length_id,length_id+2);
 	 			String temp2=line.substring(length_id+2,length_id+3);
 	 			System.out.println("Temperature is: " + temp+","+temp2); 
-	 			
 	 			toClient.println("ok");
-	 			
 	 			db.insert(id, temp, temp2);
 	 			
 	 		}
 	 		//serverSocket.close();
 	 	}
 	 	catch(UnknownHostException ex) {
-	 		
 	 		ex.printStackTrace();
 	 	}
 	 	catch(IOException e){
